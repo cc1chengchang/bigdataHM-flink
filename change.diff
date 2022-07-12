@@ -1,0 +1,36 @@
+diff --git a/table-walkthrough/src/main/java/org/apache/flink/playgrounds/spendreport/SpendReport.java b/table-walkthrough/src/main/java/org/apache/flink/playgrounds/spendreport/SpendReport.java
+index d257102..4bfa2f8 100644
+--- a/table-walkthrough/src/main/java/org/apache/flink/playgrounds/spendreport/SpendReport.java
++++ b/table-walkthrough/src/main/java/org/apache/flink/playgrounds/spendreport/SpendReport.java
+@@ -18,10 +18,7 @@
+ 
+ package org.apache.flink.playgrounds.spendreport;
+ 
+-import org.apache.flink.table.api.EnvironmentSettings;
+-import org.apache.flink.table.api.Table;
+-import org.apache.flink.table.api.TableEnvironment;
+-import org.apache.flink.table.api.Tumble;
++import org.apache.flink.table.api.*;
+ import org.apache.flink.table.expressions.TimeIntervalUnit;
+ 
+ import static org.apache.flink.table.api.Expressions.*;
+@@ -29,7 +26,18 @@ import static org.apache.flink.table.api.Expressions.*;
+ public class SpendReport {
+ 
+     public static Table report(Table transactions) {
+-        throw new UnimplementedException();
++        Table table = transactions.window(Slide.over(lit(5).minutes())
++                        .every(lit(1).minutes())
++                        .on($("transaction_time"))
++                        .as("log_ts"))
++                .groupBy($("account_id"), $("log_ts"))
++                .select($("account_id"),
++                        $("log_ts").start().as("log_ts"),
++                        $("amount").avg().as("amount"));
++        return table;
++
++
++        //throw new UnimplementedException();
+     }
+ 
+     public static void main(String[] args) throws Exception {
